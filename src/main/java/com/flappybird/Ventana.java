@@ -71,7 +71,7 @@ public class Ventana {
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
         // Crear la ventana con el título inicial
-        handle = glfwCreateWindow(ANCHO, ALTO, "Flappy Bird - 2 Jugadores", NULL, NULL);
+        handle = glfwCreateWindow(ANCHO, ALTO, "Flappy Bird - 3 Jugadores", NULL, NULL);
         if (handle == NULL) {
             throw new RuntimeException("No se pudo crear la ventana GLFW");
         }
@@ -169,9 +169,10 @@ public class Ventana {
      */
     private void actualizarTitulo() {
         String titulo = String.format(
-            "Flappy Bird | J1: %d pts | J2: %d pts | Nivel: %d",
+            "Flappy Bird | J1: %d pts | J2: %d pts | J3: %d pts | Nivel: %d",
             juego.getPuntajeJ1(),   // Puntaje del jugador 1
             juego.getPuntajeJ2(),   // Puntaje del jugador 2
+            juego.getPuntajeJ3(),   // Puntaje del jugador 3
             juego.getNivel()        // Nivel de dificultad actual
         );
         glfwSetWindowTitle(handle, titulo);

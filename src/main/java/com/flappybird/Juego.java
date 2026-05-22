@@ -27,6 +27,7 @@ public class Juego {
     // Los dos pájaros: jugador 1 (amarillo/naranja) y jugador 2 (azul)
     private final Pajaro jugador1;
     private final Pajaro jugador2;
+    private final Pajaro jugador3;
 
     // Lista de tuberías actualmente visibles en pantalla
     private final List<Tuberia> tuberias;
@@ -40,6 +41,7 @@ public class Juego {
     // Puntajes individuales de cada jugador (se incrementan al pasar tuberías)
     private int puntajeJ1 = 0;
     private int puntajeJ2 = 0;
+    private int puntajeJ3 = 0;
 
     // Velocidad actual de las tuberías en NDC/s — igual que el ing.: 0.62f
     private float velocidadTuberias = 0.62f;
@@ -74,6 +76,10 @@ public class Juego {
     private static final float J1_Y_INICIO = -0.05f;  // centro en 0.0 (mitad de pantalla)
     private static final float J2_X_INICIO = -0.68f;
     private static final float J2_Y_INICIO = -0.05f;
+    private static final float J3_X_INICIO = -0.80f;
+    private static final float J3_Y_INICIO = -0.05f;
+
+    private static final int PUNTOS_QUE_DETERMINA_EL_GANADOR = 2;
 
     // Bandera para reproducir el sonido de game over una sola vez
     private boolean sonidoGameOverReproducido = false;
@@ -107,6 +113,9 @@ public class Juego {
 
         // Crear jugador 2 con color azul claro
         jugador2 = new Pajaro(J2_X_INICIO, J2_Y_INICIO, 0.3f, 0.7f, 1.0f);
+
+        //jugador 3 con color blanco
+        jugador3 = new Pajaro(J3_X_INICIO, J3_Y_INICIO, 1.0f, 1.0f, 1.0f);
 
         // Inicializar la lista de tuberías vacía
         tuberias = new ArrayList<>();
@@ -143,6 +152,7 @@ public class Juego {
         // Actualizar la física de ambos pájaros
         jugador1.actualizar(deltaTime);
         jugador2.actualizar(deltaTime);
+        jugador3.actualizar(deltaTime);
 
         // Verificar que ningún pájaro salga por los bordes de la pantalla
         verificarLimitesPantalla();
@@ -172,14 +182,23 @@ public class Juego {
             if (jugador1.estaVivo() && t.verificarPasoJugador1(jugador1.getX())) {
                 puntajeJ1++;                          // Incrementar puntaje de J1
                 actualizarDificultad();               // Recalcular nivel y velocidad
-                reproducirSonidoPunto();              // Reproducir efecto de audio
+                reproducirSonidoPunto();                           // Reproducir efecto de audio
+                verificarFinDelJuego();
             }
 
             // Verificar si el jugador 2 pasó esta tubería
             if (jugador2.estaVivo() && t.verificarPasoJugador2(jugador2.getX())) {
                 puntajeJ2++;                          // Incrementar puntaje de J2
                 actualizarDificultad();               // Recalcular nivel y velocidad
+                reproducirSonidoPunto();                // Reproducir efecto de audio
+                verificarFinDelJuego();
+            }
+
+            if (jugador3.estaVivo() && t.verificarPasoJugador3(jugador3.getX())) {
+                puntajeJ3++;                          // Incrementar puntaje de J3
+                actualizarDificultad();               // Recalcular nivel y velocidad
                 reproducirSonidoPunto();              // Reproducir efecto de audio
+                verificarFinDelJuego();
             }
 
             // Detectar colisión AABB entre el jugador 1 y esta tubería
@@ -195,16 +214,31 @@ public class Juego {
                     jugador2.getAncho(), jugador2.getAlto())) {
                 jugador2.morir();   // Matar al jugador 2 si choca
             }
+
+            // Detectar colisión AABB entre el jugador 3 y esta tubería
+            if (jugador3.estaVivo() && t.colisiona(
+                    jugador3.getX(), jugador3.getY(),
+                    jugador3.getAncho(), jugador3.getAlto())) {
+                jugador3.morir();   // Matar al jugador 3 si choca
+            }
+
+            
         }
 
-        // Verificar si ambos jugadores están muertos para terminar la partida
-        if (!jugador1.estaVivo() && !jugador2.estaVivo()) {
+        // Verificar si todos los jugadores están muertos para terminar la partida
+        if (!jugador1.estaVivo() && !jugador2.estaVivo() && !jugador3.estaVivo()) {
             // Solo reproducir el sonido de game over la primera vez
             if (!sonidoGameOverReproducido) {
                 reproducirSonidoGameOver();           // Reproducir efecto de audio
                 sonidoGameOverReproducido = true;     // Marcar como reproducido
             }
             estado = Estado.GAME_OVER;                // Cambiar al estado de game over
+        }
+    }
+
+    private void verificarFinDelJuego(){
+        if (puntajeJ1 == PUNTOS_QUE_DETERMINA_EL_GANADOR || puntajeJ2 == PUNTOS_QUE_DETERMINA_EL_GANADOR || puntajeJ3 == PUNTOS_QUE_DETERMINA_EL_GANADOR) {
+            estado = Estado.GAME_OVER;
         }
     }
 
@@ -308,7 +342,7 @@ public class Juego {
             // Dibujar ambos pájaros
             jugador1.dibujar(renderer);
             jugador2.dibujar(renderer);
-
+            jugador3.dibujar(renderer);
             // Dibujar el HUD con puntajes y nivel
             dibujarHUD(renderer);
 
@@ -336,9 +370,9 @@ public class Juego {
             -anchoTitulo / 2, 0.233f, 2,
             1.0f, 1.0f, 0.2f);
 
-        // "2 JUGADORES" — y=335px → y_ndc=0.117
-        float anchoSub = TextoPixel.anchoTexto("2 JUGADORES", 1);
-        TextoPixel.dibujar(renderer, "2 JUGADORES",
+        // "3 JUGADORES" — y=335px → y_ndc=0.117
+        float anchoSub = TextoPixel.anchoTexto("3 JUGADORES", 1);
+        TextoPixel.dibujar(renderer, "3 JUGADORES",
             -anchoSub / 2, 0.117f, 1,
             0.9f, 0.9f, 0.9f);
 
@@ -351,6 +385,10 @@ public class Juego {
         TextoPixel.dibujar(renderer, "J2: W O ARRIBA",
             -0.5625f, -0.067f, 1,
             0.3f, 0.7f, 1.0f);
+        
+        TextoPixel.dibujar(renderer, "J3: Y",
+            -0.5625f, -0.150f, 1,
+            1.0f, 1.0f, 1.0f);
 
         // "ENTER: INICIAR" — y=210px → y_ndc=-0.300, centrado
         float anchoEnter = TextoPixel.anchoTexto("ENTER: INICIAR", 1);
@@ -360,6 +398,7 @@ public class Juego {
 
         jugador1.dibujar(renderer);
         jugador2.dibujar(renderer);
+        jugador3.dibujar(renderer);
     }
 
     /**
@@ -381,6 +420,11 @@ public class Juego {
         TextoPixel.dibujar(renderer, "J2:" + puntajeJ2,
             -0.700f, 0.907f, 1,
             0.3f, 0.7f, 1.0f);
+
+            // J3 — x=230px → -0.425
+        TextoPixel.dibujar(renderer, "J3:" + puntajeJ3,
+            -0.425f, 0.907f, 1,
+            1.0f, 1.0f, 1.0f);
 
         // Nivel — centrado en x=0
         String textoNivel = "NIVEL:" + nivel;
@@ -421,15 +465,22 @@ public class Juego {
         TextoPixel.dibujar(renderer, "J2: " + puntajeJ2 + " PUNTOS",
             -0.5625f, 0.033f, 1,
             0.3f, 0.7f, 1.0f);
+        // "J3: X PUNTOS" — (175,285)px → x=-0.5625, y=-0.050
+        TextoPixel.dibujar(renderer, "J3: " + puntajeJ3 + " PUNTOS",
+            -0.5625f, -0.050f, 1,
+            1.0f, 1.0f, 1.0f);
 
         String ganador;
         float gr, gg, gb;
-        if (puntajeJ1 > puntajeJ2) {
+        if (puntajeJ1 > puntajeJ2 && puntajeJ1 > puntajeJ3) {
             ganador = "GANA J1!";
             gr = 1.0f; gg = 0.8f; gb = 0.0f;
-        } else if (puntajeJ2 > puntajeJ1) {
+        } else if (puntajeJ2 > puntajeJ1 && puntajeJ2 > puntajeJ3) {
             ganador = "GANA J2!";
             gr = 0.3f; gg = 0.7f; gb = 1.0f;
+        } else if (puntajeJ3 > puntajeJ1 && puntajeJ3 > puntajeJ2) {
+            ganador = "GANA J3!";
+            gr = 0.2f; gg = 1.0f; gb = 0.2f;
         } else {
             ganador = "EMPATE!";
             gr = 1.0f; gg = 1.0f; gb = 1.0f;
@@ -472,6 +523,9 @@ public class Juego {
         if (jugador2.estaVivo() && jugador2.getY() < -0.90f) {
             jugador2.morir();
         }
+        if (jugador3.estaVivo() && jugador3.getY() < -0.90f) {
+            jugador3.morir();
+        }
 
         // Límite superior en NDC: 0.883 = borde inferior de la barra HUD
         // Igual que el ing.: birdTop >= 1.0f (adaptado al HUD)
@@ -481,6 +535,9 @@ public class Juego {
         if (jugador2.estaVivo() && jugador2.getY() + jugador2.getAlto() > 0.883f) {
             jugador2.morir();
         }
+        if (jugador3.estaVivo() && jugador3.getY() + jugador3.getAlto() > 0.883f) {
+            jugador3.morir();
+        }
     }
 
     /**
@@ -489,7 +546,7 @@ public class Juego {
      */
     private void actualizarDificultad() {
         // Usar el puntaje más alto entre ambos jugadores para definir el nivel
-        int puntajeMaximo = Math.max(puntajeJ1, puntajeJ2);
+        int puntajeMaximo = Math.max(puntajeJ1, Math.max(puntajeJ2, puntajeJ3));
 
         // Calcular el nuevo nivel: 1 nivel base + 1 nivel por cada 5 puntos
         int nuevoNivel = 1 + puntajeMaximo / 5;
@@ -516,6 +573,7 @@ public class Juego {
         // Devolver cada pájaro a su posición y estado inicial
         jugador1.reiniciar(J1_X_INICIO, J1_Y_INICIO);
         jugador2.reiniciar(J2_X_INICIO, J2_Y_INICIO);
+        jugador3.reiniciar(J3_X_INICIO, J3_Y_INICIO);
 
         // Eliminar todas las tuberías de la partida anterior
         tuberias.clear();
@@ -523,6 +581,7 @@ public class Juego {
         // Resetear todos los contadores de la partida
         puntajeJ1 = 0;
         puntajeJ2 = 0;
+        puntajeJ3 = 0;
         nivel = 1;
         velocidadTuberias = VELOCIDAD_BASE;
         timerTuberia = 0.0f;
@@ -570,6 +629,13 @@ public class Juego {
         }
     }
 
+    public void saltarJugador3() {
+        if (estado == Estado.JUGANDO) {
+            jugador3.saltar();            // Aplicar impulso hacia arriba
+            reproducirSonidoSalto();      // Reproducir efecto de audio
+        }
+    }
+
     /**
      * Reacciona a la tecla ENTER según el estado actual:
      * - MENU → inicia la partida
@@ -602,6 +668,8 @@ public class Juego {
 
     /** @return Puntaje actual del jugador 2 */
     public int getPuntajeJ2() { return puntajeJ2; }
+
+    public int getPuntajeJ3() { return puntajeJ3; }
 
     /** @return Nivel de dificultad actual */
     public int getNivel()     { return nivel; }

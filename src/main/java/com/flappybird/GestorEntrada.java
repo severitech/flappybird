@@ -64,6 +64,10 @@ public class GestorEntrada {
                         // FLECHA ARRIBA → Jugador 2 salta (control principal)
                         juego.saltarJugador2();
                         break;
+                    case GLFW.GLFW_KEY_Y:
+                        // S → Jugador 3 salta (control alternativo)
+                        juego.saltarJugador3();
+                        break;
 
                     case GLFW.GLFW_KEY_ENTER:
                         // ENTER → Avanzar estado: MENU→JUGANDO, GAME_OVER→MENU
@@ -75,6 +79,7 @@ public class GestorEntrada {
                         GLFW.glfwSetWindowShouldClose(window, true);
                         break;
 
+                    
                     default:
                         // Ignorar cualquier otra tecla no mapeada
                         break;

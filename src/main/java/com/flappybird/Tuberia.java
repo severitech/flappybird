@@ -30,6 +30,9 @@ public class Tuberia {
     // Indica si el pájaro 2 ya pasó esta tubería
     private boolean pasadaJugador2 = false;
 
+    // Indica si el pájaro 3 ya pasó esta tubería
+    private boolean pasadaJugador3 = false;
+
     /**
      * Constructor de la tubería
      *
@@ -154,6 +157,20 @@ public class Tuberia {
     public boolean verificarPasoJugador2(float px) {
         if (!pasadaJugador2 && px > x + ANCHO) {
             pasadaJugador2 = true;
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Verifica si el jugador 3 acaba de pasar la tubería para sumar punto
+     *
+     * @param px Posición X del pájaro
+     * @return true si acaba de pasar (solo la primera vez)
+     */
+    public boolean verificarPasoJugador3(float px) {
+        if (!pasadaJugador3 && px > x + ANCHO) {
+            pasadaJugador3 = true;
             return true;
         }
         return false;
